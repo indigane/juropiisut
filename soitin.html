@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Juropiisusoitin</title>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: sans-serif;
+        color: #fff;
+        background: #000;
+      }
+      .no-cursor * {
+        cursor: none !important;
+      }
+      .player-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: auto;
+        height: auto;
+        overflow: hidden;
+        background: #000;
+      }
+      .player-play-button {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 10vmin;
+        background: #000;
+        cursor: pointer;
+      }
+      .player {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
+      .player video {
+        width: 100%;
+        height: 100%;
+      }
+      .player-title {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        padding: 0.5em;
+        opacity: .2;
+        pointer-events: none;
+        /* Outlined - shadow */
+        text-shadow:
+          -2px 0 1px #000,
+          0 -2px 1px #000,
+          2px 0 1px #000,
+          0 2px 1px #000,
+          calc(0.7 * -2px) calc(0.7 * 2px) 1px #000,
+          calc(0.7 * 2px) calc(0.7 * -2px) 1px #000,
+          calc(0.7 * 2px) calc(0.7 * 2px) 1px #000,
+          calc(0.7 * -2px) calc(0.7 * -2px) 1px #000,
+          -2px 0 1px #000,
+          0 -2px 1px #000,
+          2px 0 1px #000,
+          0 2px 1px #000,
+          calc(0.7 * -2px) calc(0.7 * 2px) 1px #000,
+          calc(0.7 * 2px) calc(0.7 * -2px) 1px #000,
+          calc(0.7 * 2px) calc(0.7 * 2px) 1px #000,
+          calc(0.7 * -2px) calc(0.7 * -2px) 1px #000;
+        /**/
+      }
+      .player-captions {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        pointer-events: none;
+        text-align: center;
+        white-space: pre-line;
+        font-family: Roboto, Arial, sans-serif;
+        font-size: 50px;
+        padding-bottom: 0.35em;
+      }
+      .player-captions span {
+        /* Background *//*
+        background: rgba(0, 0, 0, 0.5);
+        box-shadow:
+          -0.2em 0 0 0 rgba(0, 0, 0, 0.5),
+          0.2em 0 0 0 rgba(0, 0, 0, 0.5);
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        /**/
+        /* Outlined - stroke *//*
+        -webkit-text-stroke-width: 7px;
+        -webkit-text-stroke-color: #000;
+        /**/
+        /* Outlined - shadow */
+        text-shadow:
+          -4px 0 2px #000,
+          0 -4px 2px #000,
+          4px 0 2px #000,
+          0 4px 2px #000,
+          calc(0.7 * -4px) calc(0.7 * 4px) 2px #000,
+          calc(0.7 * 4px) calc(0.7 * -4px) 2px #000,
+          calc(0.7 * 4px) calc(0.7 * 4px) 2px #000,
+          calc(0.7 * -4px) calc(0.7 * -4px) 2px #000,
+          -4px 0 2px #000,
+          0 -4px 2px #000,
+          4px 0 2px #000,
+          0 4px 2px #000,
+          calc(0.7 * -4px) calc(0.7 * 4px) 2px #000,
+          calc(0.7 * 4px) calc(0.7 * -4px) 2px #000,
+          calc(0.7 * 4px) calc(0.7 * 4px) 2px #000,
+          calc(0.7 * -4px) calc(0.7 * -4px) 2px #000;
+        /**/
+      }
+      ::cue {
+        background: rgba(0, 0, 0, .5);
+        font-size: 50px;
+      }
+      .player-break {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
+      .player-break .previous-video-title,
+      .player-break .next-video-title {
+        position: absolute;
+        padding: 60px;
+        font-size: 64px;
+        white-space: pre-line;
+      }
+      .player-break .previous-video-title {
+        top: 0;
+        left: 0;
+      }
+      .player-break .next-video-title {
+        right: 0;
+        bottom: 0;
+        text-align: right;
+      }
+      .player-break .progress-indicator {
+        position: absolute;
+        top: calc(50% - 1px);
+        height: 2px;
+        width: 100%;
+        background: #fff;
+        transform-origin: left center;
+        transform: scaleX(0);
+      }
+      .playing-break .player,
+      .playing-break .player-title,
+      .playing-break .player-play-button,
+      .playing-break .player-captions {
+        display: none;
+      }
+      .playing-video .player-break,
+      .playing-video .player-play-button {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="player-wrapper">
+      <div class="player"></div>
+      <div class="player-title"></div>
+      <div class="player-captions">
+        <span></span>
+      </div>
+      <div class="player-break">
+        <div class="previous-video-title"></div>
+        <div class="next-video-title"></div>
+        <div class="progress-indicator"></div>
+      </div>
+      <div class="player-play-button" onclick="handlePlayClick()">&#x25b6;</div>
+    </div>
+    <script>
+      const year = parseInt(location.search.split('?').pop()) || new Date().getFullYear();
+      document.write(`<script src="data-${year}.js"></${'script'}>`);
+    </script>
+    <script>
+      // copy([...document.querySelectorAll('.ytd-playlist-video-list-renderer  #video-title[href*="watch?v="]')].map(el => el.href).join('\n'))
+      // copy([...document.querySelectorAll('.ytd-playlist-video-list-renderer  #video-title[href*="watch?v="]')].map(el => el.getAttribute('title')).join('\n'))
+      // yt-dlp --write-subs --format-sort "height:1080" --restrict-filenames -o "%(autonumber)02d_%(title)s.%(ext)s" https://www.youtube.com/playlist?list=PLmWYEDTNOGUKL2aNx4HqVFLnAty4MnwiB https://www.youtube.com/playlist?list=PLmWYEDTNOGUJtZe-O91QZjU6UbcrcyBDf
+      // https://github.com/matthijs110/chromium-country-flags/
+      // const breakDurationMs = 3 * 1000; // DEBUG
+      // const breakDurationMs = 5 * 1000; // DEBUG
+      const breakDurationMs = 30 * 1000;
+      const playerPlayButton = document.querySelector('.player-play-button');
+      const playerElement = document.querySelector('.player');
+      let playerTitle = document.querySelector('.player-title');
+      const playerBreakScreen = document.querySelector('.player-break');
+      const previousVideoTitle = document.querySelector('.previous-video-title');
+      const nextVideoTitle = document.querySelector('.next-video-title');
+      const progressIndicator = document.querySelector('.progress-indicator');
+      const captionsContainer = document.querySelector('.player-captions');
+      const captionsText = document.querySelector('.player-captions span');
+      let video;
+      let currentVideoIndex = -1;
+      let nextBreakTimeout;
+      let progressAnimation;
+      function handlePlayClick() {
+        if (location.search.includes('external-title')) {
+          setUpExternalTitle();
+        }
+        playNextBreakScreen();
+      }
+      function playNextBreakScreen() {
+        // Update and display break screen
+        currentVideoIndex += 1;
+        const previousVideoIndex = currentVideoIndex - 1;
+        const previousVideo = songs[previousVideoIndex];
+        const nextVideo = songs[currentVideoIndex];
+        previousVideoTitle.textContent = previousVideo ? `${previousVideoIndex + 1} - ${previousVideo.title}` : '';
+        nextVideoTitle.textContent = nextVideo ? `${currentVideoIndex + 1} - ${nextVideo.title}` : '';
+        document.body.classList.add('playing-break');
+        document.body.classList.remove('playing-video');
+        if (nextVideo === undefined) {
+          return;
+        }
+        // Play progress animation
+        if (progressAnimation !== undefined) {
+          progressAnimation.cancel();
+        }
+        progressAnimation = progressIndicator.animate(
+          [
+            {transform: 'scaleX(0)'},
+            {transform: 'scaleX(1)'},
+          ],
+          {duration: breakDurationMs},
+        );
+        progressAnimation.finished.then(() => {
+          progressAnimation = undefined;
+          playNextVideo();
+        });
+        // Set up next video
+        playerTitle.textContent = `${currentVideoIndex + 1} - ${nextVideo.title}`;
+        playerElement.innerHTML = `
+          <video>
+            <source
+              src="${nextVideo.filename}"
+              type="video/webm"
+            />
+            <track
+              label="English"
+              kind="subtitles"
+              srclang="en"
+              src="${nextVideo.filename.replace(/(.mp4|.webm)$/i, '.en.vtt')}"
+              default
+            />
+          </video>
+        `;
+        video = playerElement.querySelector('video');
+        video.pause();
+        video.currentTime = nextVideo.start / 1000;
+        let endTime;
+        video.addEventListener('timeupdate', function checkTime() {
+          if (endTime === undefined) {
+            endTime = video.duration ? video.duration - (nextVideo.end / 1000) : undefined;
+            // video.currentTime = endTime - 3; // DEBUG
+            // video.currentTime = endTime - 60; // DEBUG
+          }
+          if (video.currentTime >= endTime) {
+            video.remove();
+            playNextBreakScreen();
+          }
+        });
+        video.addEventListener('click', pauseUnpauseVideo);
+        // Custom captions
+        video.addEventListener('loadedmetadata', function setUpCustomCaptions() {
+          const textTrack = video.textTracks[0];
+          textTrack.mode = 'hidden';
+          textTrack.addEventListener('cuechange', function () {
+            if (textTrack.activeCues.length === 0) {
+              captionsContainer.style.display = 'none';
+              captionsText.textContent = '';
+            }
+            else {
+              captionsContainer.style.display = '';
+              // \u2028 = Line Separator
+              captionsText.textContent = textTrack.activeCues[0].text.replaceAll('\u2028', '');
+            }
+          });
+        });
+      }
+      function playNextVideo() {
+        document.body.classList.add('playing-video');
+        document.body.classList.remove('playing-break');
+        video.play();
+      }
+      document.addEventListener('keyup', function (event) {
+        // Space
+        if (event.key === ' ') {
+          pauseUnpauseBreakScreen();
+          pauseUnpauseVideo();
+        }
+        else if (event.key == 'ArrowLeft') {
+          const minIndex = -1;
+          if (currentVideoIndex > minIndex) {
+            currentVideoIndex -= 2;
+            playNextBreakScreen();
+          }
+        }
+        else if (event.key == 'ArrowRight') {
+          const maxIndex = songs.length;
+          if (currentVideoIndex < maxIndex) {
+            playNextBreakScreen();
+          }
+        }
+      });
+      playerBreakScreen.addEventListener('click', pauseUnpauseBreakScreen);
+      function pauseUnpauseBreakScreen() {
+        if (progressAnimation === undefined) {
+          return;
+        }
+        if (progressAnimation.playState === 'paused') {
+          progressAnimation.play();
+        }
+        else {
+          progressAnimation.pause();
+        }
+      }
+      function pauseUnpauseVideo() {
+        if (progressAnimation !== undefined) {
+          return;
+        }
+        if (video.paused) {
+          video.play();
+        }
+        else {
+          video.pause();
+        }
+      }
+      function setUpExternalTitle() {
+        const secondaryWindow = window.open('about:blank', 'secondaryWindow');
+        secondaryWindow.document.write(`<!DOCTYPE html>
+          <html>
+            <head>
+              <title>${document.title}</title>
+              <style>
+                body, html {
+                  margin: 0;
+                  padding: 0;
+                  overflow: hidden;
+                  font-family: sans-serif;
+                  color: #fff;
+                  background: #000;
+                }
+                .video-title {
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  width: auto;
+                  height: auto;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  text-align: center;
+                  font-size: 64px;
+                  white-space: pre-line;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="video-title"></div>
+            </body>
+          </html>
+        `);
+        playerTitle = secondaryWindow.document.querySelector('.video-title');
+      }
+      // Auto-hide cursor
+      let cursorAutohideTimeout;
+      let isMouseHidden = false;
+      document.addEventListener('mousemove', function updateCursorAutohide() {
+        if (isMouseHidden) {
+          document.body.classList.remove('no-cursor');
+          isMouseHidden = false;
+        }
+        clearTimeout(cursorAutohideTimeout);
+        cursorAutohideTimeout = setTimeout(function hideCursor() {
+          document.body.classList.add('no-cursor');
+          isMouseHidden = true;
+        }, 3000);
+      });
+    </script>
+  </body>
+</html>

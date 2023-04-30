@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Juropiisut</title>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0 10px;
+        font-family: sans-serif;
+        color: #e1e1e1;
+        background: #1e1e1e;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: border-box;
+      }
+      h1 {
+        text-align: center;
+      }
+      body:not(.loaded) h1 ~ * {
+        opacity: 0;
+      }
+      #reviewer-name {
+        display: block;
+        width: 100%;
+        max-width: 400px;
+        margin: 50px auto 20px auto;
+        padding: 10px 10px 10px 10px;
+        background: inherit;
+        color: inherit;
+        font: inherit;
+        border: 0;
+        border-bottom: 1px solid currentColor;
+        text-align: center;
+        font-size: 20px;
+      }
+      #reviewer-name:focus {
+        outline: none !important;
+        background: #282828;
+      }
+      .songs {
+        margin-top: 50px;
+      }
+      .song {
+        max-width: 400px;
+        margin: 0 auto;
+        padding-bottom: 20px;
+        margin-bottom: 25px;
+        border-bottom: 1px solid currentColor;
+      }
+      .song-title {
+        margin: 0;
+        white-space: pre-line;
+        font-size: 14px;
+        font-weight: normal;
+        text-align: center;
+      }
+      .criteria-table {
+        width: 100%;
+        margin: 15px 0 0 0;
+      }
+      .rating-scale th {
+        font-weight: normal;
+      }
+      .criterion-name {
+        width: 0;
+      }
+      .criterion-rating {
+        text-align: center;
+      }
+      .criterion-rating label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 32px;
+      }
+      .criterion-rating label:focus-within {
+        color: #9a7eff;
+      }
+      .criterion-rating input {
+        padding: 0;
+        margin: 0;
+        width: 20px;
+        height: 20px;
+
+        appearance: none;
+        -webkit-appearance: none;
+        /* For iOS < 15 */
+        background-color: var(--form-background);
+
+        font: inherit;
+        color: currentColor;
+        border: 2px solid currentColor;
+        border-radius: 50%;
+        display: grid;
+        place-content: center;
+        transition: 120ms all ease-in-out;
+      }
+      .criterion-rating input::before {
+        content: "";
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        transform: scale(0);
+        background-color: currentColor;
+        transition: 120ms all ease-in-out;
+      }
+      .criterion-rating input:checked::before {
+        transform: scale(1);
+      }
+      .actions {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px 0 40px;
+        display: grid;
+        place-content: center;
+      }
+      .actions button {
+        padding: 10px 20px 10px 22px;
+        border: 0;
+        border-radius: 7px;
+        font-size: 18px;
+        background: #444;
+        color: #fff;
+        cursor: pointer;
+      }
+      .actions button:active {
+        background: #555;
+      }
+      .notes {
+        padding: 10px;
+        margin-bottom: -10px;
+        font: inherit;
+        cursor: text;
+      }
+      .notes:focus {
+        outline: none !important;
+        background: #282828;
+      }
+      .notes:not(:empty) {
+        background: #282828;
+      }
+      .notes:empty:not(:focus)::before {
+        content: "Muistiinpanot...";
+        display: block;
+        text-align: center;
+        opacity: .5;
+      }
+      .notes-submit {
+        margin-top: -15px;
+      }
+    </style>
+  </head>
+  <body>
+    <form>
+      <h1>Juropiisut</h1>
+      <input id="reviewer-name" placeholder="Arvostelijan puumerkki">
+      <div class="songs"></div>
+      <div class="actions">
+        <button type="submit">Jaa... 😑</button>
+      </div>
+      <div class="actions notes-submit">
+        <button type="button" class="notes-submit-button">Jaa... kommentitkin..?</button>
+      </div>
+    </form>
+    <template id="song-template">
+      <div class="song">
+        <h2 class="song-title"></h2>
+        <table class="criteria-table">
+          <thead>
+            <tr class="rating-scale">
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="notes" contenteditable="true"></div>
+      </div>
+    </template>
+    <template id="criterion-template">
+      <tr class="criterion-row">
+        <td class="criterion-name"></td>
+      </tr>
+    </template>
+    <script>
+      const year = parseInt(location.search.split('?').pop()) || new Date().getFullYear();
+      document.write(`<script src="data-${year}.js"></${'script'}>`);
+      document.title = `Juropiisut ${year}`;
+      document.querySelector('h1').textContent = `Juropiisut ${year}`;
+    </script>
+    <script src="encoding.js"></script>
+    <script>
+      const formElement = document.querySelector('form');
+      const reviewerNameInput = document.querySelector('#reviewer-name');
+      const songsContainer = document.querySelector('.songs');
+      const songTemplate = document.querySelector('#song-template');
+      const criterionTemplate = document.querySelector('#criterion-template');
+      const submitButton = document.querySelector('.actions button');
+      const notesSubmitButton = document.querySelector('.notes-submit-button');
+
+      initSongs();
+      loadData();
+      document.addEventListener('change', persistData);
+
+      function initSongs() {
+        for (const song of songs) {
+          const songElement = songTemplate.content.cloneNode(true);
+          // Title
+          songElement.querySelector('.song-title').textContent = `${song.number}. ${song.title}`;
+          // Rating scale
+          const ratingScaleElement = songElement.querySelector('.rating-scale');
+          for (const ratingValue of ratingScale) {
+            const ratingValueElement = document.createElement('th');
+            ratingValueElement.textContent = ratingValue;
+            ratingScaleElement.appendChild(ratingValueElement);
+          }
+          // Rating criteria
+          let criterionNumber = 0;
+          const criteriaContainer = songElement.querySelector('.criteria-table tbody');
+          for (const criterionName of ratingCriteria) {
+            criterionNumber += 1;
+            const criterionElement = criterionTemplate.content.cloneNode(true);
+            criterionElement.querySelector('.criterion-name').textContent = criterionName;
+            const criterionRow = criterionElement.querySelector('.criterion-row');
+            for (const ratingValue of ratingScale) {
+              criterionRow.insertAdjacentHTML('beforeend', `
+                <td class="criterion-rating">
+                  <label for="song-${song.number}-criteria-${criterionNumber}-value-${ratingValue}">
+                    <input
+                      type="radio"
+                      name="song-${song.number}-criteria-${criterionNumber}"
+                      id="song-${song.number}-criteria-${criterionNumber}-value-${ratingValue}"
+                      value="${ratingValue}"
+                      required
+                    >
+                  </label>
+                </td>
+              `);
+            }
+            criteriaContainer.appendChild(criterionElement);
+          }
+          // Notes persistence
+          const notesElement = songElement.querySelector('.notes');
+          notesElement.song = song;
+          notesElement.textContent = localStorage.getItem(`comment-${year}-${song.number}`) ?? '';
+          notesElement.addEventListener('input', function persistComment() {
+            localStorage.setItem(`comment-${year}-${song.number}`, notesElement.textContent);
+          });
+          songsContainer.appendChild(songElement);
+        }
+        document.body.classList.add('loaded');
+      }
+
+      // Persistence
+      function persistData() {
+        const criterionRows = document.querySelectorAll('.criterion-row');
+        const ratingValues = [];
+        for (criterionRow of criterionRows) {
+          const ratingValue = criterionRow.querySelector(':checked')?.value;
+          ratingValues.push(ratingValue ?? '-');
+        }
+        localStorage.setItem(`rating-values-${year}`, ratingValues.join(''));
+        localStorage.setItem('reviewer-name', reviewerNameInput.value);
+      }
+      function loadData() {
+        const criterionRows = document.querySelectorAll('.criterion-row');
+        const ratingValues = localStorage.getItem(`rating-values-${year}`)?.split('');
+        if (ratingValues === undefined) {
+          return;
+        }
+        for ([index, criterionRow] of criterionRows.entries()) {
+          const ratingValue = ratingValues[index];
+          const ratingInput = criterionRow.querySelector(`[value="${ratingValue}"]`);
+          if (ratingInput) {
+            ratingInput.checked = true;
+          }
+        }
+        reviewerNameInput.value = localStorage.getItem('reviewer-name') ?? '';
+      }
+
+      // Sharing
+      formElement.addEventListener('submit', function handleSubmit(event) {
+        event.preventDefault();
+        updateUrlFragment();
+        const url = new URL('tulokset.html' + location.hash, location.href);
+        if (navigator.share) {
+          navigator.share({url: url.href});
+        }
+        else if (navigator.clipboard) {
+          navigator.clipboard.writeText(url.href);
+          const originalText = submitButton.textContent;
+          submitButton.textContent = 'Linkki kopioitu leikepöydälle';
+          clearTimeout(submitButton._textTimeout);
+          submitButton._textTimeout = setTimeout(() => {
+            submitButton.textContent = originalText;
+          }, 5000);
+        }
+      })
+      function updateUrlFragment() {
+        const ratingValues = localStorage.getItem(`rating-values-${year}`)?.split('');
+        if (ratingValues === undefined) {
+          return;
+        }
+        const integerRatingValues = ratingValues.map(value => ratingScale.indexOf(value));
+        const ratingsBase64 = convertBase5ToBase64(integerRatingValues.join(''));
+        const reviewerNameBase64 = convertUnicodeToBase64(reviewerNameInput.value);
+        location.replace('#' + reviewerNameBase64 + '.' + ratingsBase64);
+      }
+      notesSubmitButton.addEventListener('click', function handleNotesSubmit() {
+        const notesElements = document.querySelectorAll('.notes');
+        let renderedNotes = [];
+        for (const notesElement of notesElements) {
+          const notes = notesElement.textContent.trim();
+          if (notes) {
+            renderedNotes.push(`# ${notesElement.song.number}. ${notesElement.song.title.replaceAll('\n', ' - ')}` + '\n' + notes);
+          }
+        }
+        if (navigator.share) {
+          const notesFile = new File(
+            [new Blob([renderedNotes.join('\n\n')], {type: 'text/plain'})],
+            `${reviewerNameInput.value} ${year}.txt`,
+            {type: 'text/plain'},
+          );
+          navigator.share({files: [notesFile]});
+        }
+        else if (navigator.clipboard) {
+          navigator.clipboard.writeText(renderedNotes.join('\n\n'));
+          const originalText = notesSubmitButton.textContent;
+          notesSubmitButton.textContent = 'Kommentit kopioitu leikepöydälle';
+          clearTimeout(notesSubmitButton._textTimeout);
+          notesSubmitButton._textTimeout = setTimeout(() => {
+            notesSubmitButton.textContent = originalText;
+          }, 5000);
+        }
+      });
+    </script>
+  </body>
+</html>

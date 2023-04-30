@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Juropiisut</title>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0 10px 10px 10px;
+        font-family: sans-serif;
+        color: #333;
+        background: #fff;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: border-box;
+      }
+      #results-input {
+        padding: 0.5em;
+        width: 100%;
+        height: 2.5em;
+        background: inherit;
+        color: inherit;
+        border: 1px solid currentColor;
+      }
+      .results-table {
+        border-collapse: collapse;
+      }
+      .results-table th {
+        vertical-align: bottom;
+      }
+      .results-table th,
+      .results-table td {
+        padding: 0.3em;
+      }
+      .reviewer-name-cell {
+        width: 2em;
+        height: 200px;
+        vertical-align: bottom;
+      }
+      .reviewer-name-text {
+        position: absolute;
+        width: 260px;
+        transform-origin: left bottom;
+        transform: translateX(16px) translateY(-20px) rotate(-45deg);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-align: left;
+      }
+      .song-title.song-title {
+        padding-right: 1em;
+        white-space: pre-line;
+        text-align: right;
+        font-weight: bold;
+        line-height: 1.5;
+      }
+      .criterion-name {
+        text-align: right;
+      }
+      .rating-value {
+        text-align: center;
+        width: 2em;
+      }
+      [data-value="1"] {
+        background: #9ec2ff;
+        color: #000;
+      }
+      [data-value="2"] {
+        background: #7b9ff2;
+        color: #000;
+      }
+      [data-value="3"] {
+        background: #4259c3;
+        color: #fff;
+      }
+      [data-value="4"] {
+        background: #212aa5;
+        color: #fff;
+      }
+      [data-value="5"] {
+        background: #03018c;
+        color: #fff;
+      }
+      .song-row {
+        border-top: 1px solid #ccf;
+      }
+      [data-sort] {
+        cursor: pointer;
+      }
+    </style>
+    <style id="sort-style"></style>
+  </head>
+  <body>
+    <textarea id="results-input"></textarea>
+    <table class="results-table"></table>
+    <script>
+      const year = parseInt(location.search.split('?').pop()) || new Date().getFullYear();
+      document.write(`<script src="data-${year}.js"></${'script'}>`);
+      document.title = `Juropiisut ${year}`;
+    </script>
+    <script src="encoding.js"></script>
+    <script>
+      const resultsInput = document.querySelector('#results-input');
+      const resultsTable = document.querySelector('.results-table');
+      const sortStyleElement = document.querySelector('#sort-style');
+      const results = {};
+      let currentSortDirection = 'ascending';
+      let currentSortCriterion = undefined;
+
+      resultsInput.addEventListener('input', handleResultsInput);
+      resultsInput.value += location.href;
+      document.body.onload = handleResultsInput;
+      document.addEventListener('click', handleSortClick);
+
+      async function handleResultsInput() {
+        const text = resultsInput.value;
+        if ( ! text.includes('http')) {
+          return;
+        }
+        const urls = (
+          text
+          .split('http')
+          .map(result => result.trim())
+          .filter(result => !!result)
+        );
+        for (const partialUrl of urls) {
+          const url = 'http' + partialUrl;
+          const urlObj = new URL(url);
+          const urlData = urlObj.hash.split('#').pop();
+          const [reviewerNameBase64, ratingsBase64] = urlData.split('.');
+          if (reviewerNameBase64 && ratingsBase64) {
+            const reviewerName = convertBase64ToUnicode(reviewerNameBase64);
+            let ratingValues = convertBase64ToBase5(ratingsBase64).split('').map(valueIndex => ratingScale[parseInt(valueIndex)]);
+            // "zero" pad ratingValues due to conversion to a single b64 number and back, which removes leading "zeroes"
+            while (ratingValues.length < songs.length * ratingCriteria.length) {
+              ratingValues.unshift('1');
+            }
+            results[urlData] = {
+              reviewerName,
+              ratingValues,
+            };
+            for (const [index, ratingValue] of ratingValues.entries()) {
+              const songIndex = Math.floor(index / ratingCriteria.length);
+              const criterionIndex = index % ratingCriteria.length;
+              const song = songs[songIndex];
+              if (song.criteriaRatingValues === undefined) {
+                song.criteriaRatingValues = ratingCriteria.map(() => []);
+              }
+              song.criteriaRatingValues[criterionIndex].push(ratingValue);
+            }
+          }
+        }
+        resultsInput.value = '';
+        renderResults();
+      }
+
+      function renderResults() {
+        let resultsHtml = '';
+        resultsHtml += '<thead>';
+        resultsHtml += '<tr>';
+        resultsHtml += '<th colspan="2"></th>';
+        for (const {reviewerName} of Object.values(results)) {
+          resultsHtml += `<th class="reviewer-name-cell">
+            <div class="reviewer-name-text">${asTextContent(reviewerName)}
+          </th>`;
+        }
+        resultsHtml += '<th colspan="2"></th>';
+        resultsHtml += '</tr>';
+        resultsHtml += '</thead>';
+        resultsHtml += '<tbody>';
+        let songRatingSum;
+        let criteriaRatingSums;
+        for (const [songIndex, song] of songs.entries()) {
+          resultsHtml += '<tr class="song-row">';
+          resultsHtml += `<td rowspan="${ratingCriteria.length}" class="song-title">${song.number}. ${asTextContent(song.title)}</td>`;
+          songRatingSum = 0;
+          for (const [criterionIndex, _criterionName] of ratingCriteria.entries()) {
+            for (const ratingValue of song.criteriaRatingValues[criterionIndex]) {
+              songRatingSum += parseInt(ratingValue);
+            }
+          }
+          criteriaRatingSums = ratingCriteria.map(() => 0);
+          for (const [criterionIndex, criterionName] of ratingCriteria.entries()) {
+            if (criterionIndex > 0) {
+              resultsHtml += '</tr>';
+              resultsHtml += '<tr>';
+            }
+            resultsHtml += `<td class="criterion-name">${asTextContent(criterionName)}</td>`;
+            for (const ratingValue of song.criteriaRatingValues[criterionIndex]) {
+              resultsHtml += `<td class="rating-value" data-value="${ratingValue}">${ratingValue}</td>`;
+              criteriaRatingSums[criterionIndex] += parseInt(ratingValue);
+            }
+            resultsHtml += `<td class="rating-value sum" data-sort="${criterionIndex}">${criteriaRatingSums[criterionIndex]}</td>`;
+            if (criterionIndex === 0) {
+              resultsHtml += `<td class="rating-value sum" data-sort="" rowspan="${ratingCriteria.length}">${songRatingSum}</td>`;
+            }
+          }
+          resultsHtml += '</tr>';
+          song.songRatingSum = songRatingSum;
+          song.criteriaRatingSums = criteriaRatingSums;
+        }
+        resultsHtml += '</tbody>';
+        resultsTable.innerHTML = resultsHtml;
+      }
+
+      function handleSortClick(event) {
+        const sortElement = event.target.closest('[data-sort]');
+        if (sortElement === null) {
+          return;
+        }
+        const criterionIndex = sortElement.getAttribute('data-sort');
+        if (criterionIndex) {
+          sortSongs(parseInt(criterionIndex));
+        }
+        else {
+          sortSongs();
+        }
+        renderResults();
+      }
+
+      function sortSongs(criterionIndex) {
+        const isCriteriaSort = criterionIndex !== undefined;
+        if (currentSortCriterion === criterionIndex) {
+          currentSortDirection = currentSortDirection === 'ascending' ? 'descending' : 'ascending';
+        }
+        console.log(currentSortDirection);
+        songs.sort((songA, songB) => {
+          if (isCriteriaSort) {
+            let result;
+            if (currentSortDirection === 'ascending') {
+              result = songA.criteriaRatingSums[criterionIndex] - songB.criteriaRatingSums[criterionIndex];
+            }
+            else if (currentSortDirection === 'descending') {
+              result = songB.criteriaRatingSums[criterionIndex] - songA.criteriaRatingSums[criterionIndex];
+            }
+            if (result !== 0) {
+              return result;
+            }
+          }
+          if (currentSortDirection === 'ascending') {
+            return songA.songRatingSum - songB.songRatingSum;
+          }
+          else if (currentSortDirection === 'descending') {
+            return songB.songRatingSum - songA.songRatingSum;
+          }
+        });
+        currentSortCriterion = criterionIndex;
+        sortStyleElement.innerHTML = `
+          [data-sort="${criterionIndex ?? ''}"] {
+            background: #ffa;
+          }
+        `;
+      }
+
+      function asTextContent(input) {
+        const tempElement = document.createElement('span');
+        tempElement.textContent = input;
+        return tempElement.innerHTML;
+      }
+
+      // Get text width using canvas
+      function getTextWidth(text, font) {
+        const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement('canvas'));
+        const context = canvas.getContext('2d');
+        context.font = font;
+        const metrics = context.measureText(text);
+        return metrics.width;
+      }
+      function getCssStyle(element, property) {
+        return window.getComputedStyle(element, null).getPropertyValue(property);
+      }
+      function getCanvasFont(element = document.body) {
+        const fontWeight = getCssStyle(element, 'font-weight') || 'normal';
+        const fontSize = getCssStyle(element, 'font-size') || '16px';
+        const fontFamily = getCssStyle(element, 'font-family') || 'sans-serif';
+        return `${fontWeight} ${fontSize} ${fontFamily}`;
+      }
+    </script>
+  </body>
+</html>
