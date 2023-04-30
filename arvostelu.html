@@ -287,7 +287,11 @@
         updateUrlFragment();
         const url = new URL('tulokset.html' + location.hash, location.href);
         if (navigator.share) {
-          navigator.share({url: url.href});
+          navigator.share({
+            title: '',
+            text: '',
+            url: url.href,
+          });
         }
         else if (navigator.clipboard) {
           navigator.clipboard.writeText(url.href);
@@ -324,7 +328,11 @@
             `${reviewerNameInput.value} ${year}.txt`,
             {type: 'text/plain'},
           );
-          navigator.share({files: [notesFile]});
+          navigator.share({
+            title: '',
+            text: '',
+            files: [notesFile],
+          });
         }
         else if (navigator.clipboard) {
           navigator.clipboard.writeText(renderedNotes.join('\n\n'));

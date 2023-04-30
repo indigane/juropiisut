@@ -225,7 +225,6 @@
         if (currentSortCriterion === criterionIndex) {
           currentSortDirection = currentSortDirection === 'ascending' ? 'descending' : 'ascending';
         }
-        console.log(currentSortDirection);
         songs.sort((songA, songB) => {
           if (isCriteriaSort) {
             let result;
