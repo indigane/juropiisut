@@ -96,7 +96,7 @@
     <textarea id="results-input"></textarea>
     <table class="results-table"></table>
     <script>
-      const year = parseInt(location.search.split('?').pop()) || new Date().getFullYear();
+      const year = location.search.split('?').pop().replaceAll(/\W/g, '') || new Date().getFullYear();
       document.write(`<script src="data-${year}.js"></${'script'}>`);
       document.title = `Juropiisut ${year}`;
     </script>

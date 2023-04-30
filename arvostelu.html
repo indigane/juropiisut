@@ -186,7 +186,7 @@
       </tr>
     </template>
     <script>
-      const year = parseInt(location.search.split('?').pop()) || new Date().getFullYear();
+      const year = location.search.split('?').pop().replaceAll(/\W/g, '') || new Date().getFullYear();
       document.write(`<script src="data-${year}.js"></${'script'}>`);
       document.title = `Juropiisut ${year}`;
       document.querySelector('h1').textContent = `Juropiisut ${year}`;
