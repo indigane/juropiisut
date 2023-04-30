@@ -128,27 +128,29 @@
         for (const partialUrl of urls) {
           const url = 'http' + partialUrl;
           const urlObj = new URL(url);
-          const urlData = urlObj.hash.split('#').pop();
-          const [reviewerNameBase64, ratingsBase64] = urlData.split('.');
-          if (reviewerNameBase64 && ratingsBase64) {
-            const reviewerName = convertBase64ToUnicode(reviewerNameBase64);
-            let ratingValues = convertBase64ToBase5(ratingsBase64).split('').map(valueIndex => ratingScale[parseInt(valueIndex)]);
-            // "zero" pad ratingValues due to conversion to a single b64 number and back, which removes leading "zeroes"
-            while (ratingValues.length < songs.length * ratingCriteria.length) {
-              ratingValues.unshift('1');
-            }
-            results[urlData] = {
-              reviewerName,
-              ratingValues,
-            };
-            for (const [index, ratingValue] of ratingValues.entries()) {
-              const songIndex = Math.floor(index / ratingCriteria.length);
-              const criterionIndex = index % ratingCriteria.length;
-              const song = songs[songIndex];
-              if (song.criteriaRatingValues === undefined) {
-                song.criteriaRatingValues = ratingCriteria.map(() => []);
+          const urlDataList = urlObj.hash.split('#').pop().split('+');
+          for (const urlData of urlDataList) {
+            const [reviewerNameBase64, ratingsBase64] = urlData.split('.');
+            if (reviewerNameBase64 && ratingsBase64) {
+              const reviewerName = convertBase64ToUnicode(reviewerNameBase64);
+              let ratingValues = convertBase64ToBase5(ratingsBase64).split('').map(valueIndex => ratingScale[parseInt(valueIndex)]);
+              // "zero" pad ratingValues due to conversion to a single b64 number and back, which removes leading "zeroes"
+              while (ratingValues.length < songs.length * ratingCriteria.length) {
+                ratingValues.unshift('1');
               }
-              song.criteriaRatingValues[criterionIndex].push(ratingValue);
+              results[urlData] = {
+                reviewerName,
+                ratingValues,
+              };
+              for (const [index, ratingValue] of ratingValues.entries()) {
+                const songIndex = Math.floor(index / ratingCriteria.length);
+                const criterionIndex = index % ratingCriteria.length;
+                const song = songs[songIndex];
+                if (song.criteriaRatingValues === undefined) {
+                  song.criteriaRatingValues = ratingCriteria.map(() => []);
+                }
+                song.criteriaRatingValues[criterionIndex].push(ratingValue);
+              }
             }
           }
         }
