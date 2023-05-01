@@ -131,7 +131,7 @@
           const urlDataList = urlObj.hash.split('#').pop().split('+');
           for (const urlData of urlDataList) {
             const [reviewerNameBase64, ratingsBase64] = urlData.split('.');
-            if (reviewerNameBase64 && ratingsBase64) {
+            if (ratingsBase64) {
               const reviewerName = convertBase64ToUnicode(reviewerNameBase64);
               let ratingValues = convertBase64ToBase5(ratingsBase64).split('').map(valueIndex => ratingScale[parseInt(valueIndex)]);
               // "zero" pad ratingValues due to conversion to a single b64 number and back, which removes leading "zeroes"
@@ -163,10 +163,12 @@
         resultsHtml += '<thead>';
         resultsHtml += '<tr>';
         resultsHtml += '<th colspan="2"></th>';
+        let reviewerNumber = 1;
         for (const {reviewerName} of Object.values(results)) {
           resultsHtml += `<th class="reviewer-name-cell">
-            <div class="reviewer-name-text">${asTextContent(reviewerName)}
+            <div class="reviewer-name-text">${asTextContent(reviewerName) || `Arvostelija ${reviewerNumber}`}
           </th>`;
+          reviewerNumber += 1;
         }
         resultsHtml += '<th colspan="2"></th>';
         resultsHtml += '</tr>';

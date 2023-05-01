@@ -285,7 +285,7 @@
       formElement.addEventListener('submit', function handleSubmit(event) {
         event.preventDefault();
         updateUrlFragment();
-        const url = new URL('tulokset.html' + location.hash, location.href);
+        const url = new URL('tulokset.html' + location.search + location.hash, location.href);
         if (navigator.share) {
           navigator.share({
             title: '',
@@ -328,11 +328,20 @@
             `${reviewerNameInput.value} ${year}.txt`,
             {type: 'text/plain'},
           );
-          navigator.share({
+          const shareData = {
             title: '',
             text: '',
             files: [notesFile],
-          });
+          };
+          if (navigator.canShare(shareData)) {
+            navigator.share(shareData);
+          }
+          else {
+            navigator.share({
+              title: '',
+              text: renderedNotes.join('\n\n'),
+            });
+          }
         }
         else if (navigator.clipboard) {
           navigator.clipboard.writeText(renderedNotes.join('\n\n'));
