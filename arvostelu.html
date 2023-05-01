@@ -337,10 +337,13 @@
             navigator.share(shareData);
           }
           else {
-            navigator.share({
-              title: '',
-              text: renderedNotes.join('\n\n'),
-            });
+            navigator.clipboard.writeText(renderedNotes.join('\n\n'));
+            const originalText = notesSubmitButton.textContent;
+            notesSubmitButton.textContent = 'Kommentit kopioitu leikepöydälle';
+            clearTimeout(notesSubmitButton._textTimeout);
+            notesSubmitButton._textTimeout = setTimeout(() => {
+              notesSubmitButton.textContent = originalText;
+            }, 5000);
           }
         }
         else if (navigator.clipboard) {
