@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf8">
     <title>Juropiisusoitin</title>
     <style>
       body, html {
@@ -193,6 +194,7 @@
       // copy([...document.querySelectorAll('.ytd-playlist-video-list-renderer  #video-title[href*="watch?v="]')].map(el => el.href).join('\n'))
       // copy([...document.querySelectorAll('.ytd-playlist-video-list-renderer  #video-title[href*="watch?v="]')].map(el => el.getAttribute('title')).join('\n'))
       // yt-dlp --write-subs --format-sort "height:1080" --restrict-filenames -o "%(autonumber)02d_%(title)s.%(ext)s" https://www.youtube.com/playlist?list=PLmWYEDTNOGUKL2aNx4HqVFLnAty4MnwiB https://www.youtube.com/playlist?list=PLmWYEDTNOGUJtZe-O91QZjU6UbcrcyBDf
+      // yt-dlp --write-subs --format-sort "height:1080" --restrict-filenames -o "%(title)s.%(ext)s" https://www.youtube.com/playlist?list=PLmWYEDTNOGUKL2aNx4HqVFLnAty4MnwiB https://www.youtube.com/playlist?list=PLmWYEDTNOGUJtZe-O91QZjU6UbcrcyBDf
       // https://github.com/matthijs110/chromium-country-flags/
       // const breakDurationMs = 3 * 1000; // DEBUG
       // const breakDurationMs = 5 * 1000; // DEBUG
@@ -297,6 +299,9 @@
       function playNextVideo() {
         document.body.classList.add('playing-video');
         document.body.classList.remove('playing-break');
+        // Clear captions in case video was changed mid-caption.
+        captionsContainer.style.display = 'none';
+        captionsText.textContent = '';
         video.play();
       }
       document.addEventListener('keyup', function (event) {

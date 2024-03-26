@@ -1,0 +1,45 @@
+const ratingScale = ['1', '2', '3', '4', '5'];
+const ratingCriteria = ['Biisi', 'Video/show', 'Erottuvuus'];
+const songs = [
+  {start: 4400, end: 7700, filename: 'songs/Silia_Kapsis_-_Liar_Cyprus_Official_Music_Video_Eurovision_2024.webm', title: 'Kypros - Cyprus 🇨🇾\nSilia Kapsis - Liar', number: '1'},
+  {start: 4700, end: 7700, filename: 'songs/TEYA_DORA_-_RAMONDA_Serbia_Official_Music_Video_Eurovision_2024.webm', title: 'Serbia - Serbia 🇷🇸\nTEYA DORA - RAMONDA', number: '2'},
+  {start: 4700, end: 7700, filename: 'songs/Silvester_Belt_-_Luktelk_Lithuania_National_Final_Performance_Eurovision_2024.webm', title: 'Liettua - Lithuania 🇱🇹\nSilvester Belt - Luktelk', number: '3'},
+  {start: 4700, end: 7700, filename: 'songs/Bambie_Thug_-_Doomsday_Blue_Ireland_Official_Music_Video_Eurovision_2024.webm', title: 'Irlanti - Ireland 🇮🇪\nBambie Thug - Doomsday Blue', number: '4'},
+  {start: 4400, end: 7700, filename: 'songs/alyona_alyona_Jerry_Heil_-_Teresa_Maria_Ukraine_Official_Music_Video_Eurovision_2024.webm', title: 'Ukraina - Ukraine 🇺🇦\nalyona alyona & Jerry Heil - Teresa & Maria', number: '5'},
+  {start: 4700, end: 7700, filename: 'songs/LUNA_-_The_Tower_Poland_Official_Music_Video_Eurovision_2024.webm', title: 'Puola - Poland 🇵🇱\nLUNA - The Tower', number: '6'},
+  {start: 4300, end: 7700, filename: 'songs/Baby_Lasagna_-_Rim_Tim_Tagi_Dim_Croatia_Official_Music_Video_Eurovision_2024.webm', title: 'Kroatia - Croatia 🇭🇷\nBaby Lasagna - Rim Tim Tagi Dim', number: '7'},
+
+  {start: 4700, end: 7700, filename: 'songs/Hera_Bjork_-_Scared_of_Heights_Iceland_Official_Music_Video_Eurovision_2024.webm', title: 'Islanti - Iceland 🇮🇸\nHera Björk - Scared of Heights', number: '8'},
+  {start: 4400, end: 7700, filename: 'songs/Raiven_-_Veronika_Slovenia_Official_Music_Video_Eurovision_2024.webm', title: 'Slovenia - Slovenia 🇸🇮\nRaiven - Veronika', number: '9'},
+  {start: 4400, end: 7700, filename: 'songs/Windows95man_-_No_Rules_Rules_Applied_Version_Finland_Official_Video_Eurovision_2024.webm', title: 'Suomi - Finland 🇫🇮\nWindows95man - No Rules! (Rules Applied Version)', number: '10'},
+  {start: 4400, end: 7700, filename: 'songs/Natalia_Barbu_-_In_The_Middle_Moldova_National_Final_Performance_Eurovision_2024.webm', title: 'Moldova - Moldova 🇲🇩\nNatalia Barbu - In The Middle', number: '11'},
+  {start: 4400, end: 7700, filename: 'songs/FAHREE_feat._Ilkin_Dovlatov_-_Ozunl_Apar_Azerbaijan_Showcase_Performance_Eurovision_2024.webm', title: 'Azerbaidžan - Azerbaijan 🇦🇿\nFAHREE feat. Ilkin Dovlatov - Özünlə Apar', number: '12'},
+  {start: 4400, end: 7700, filename: 'songs/Electric_Fields_-_One_Milkali_One_Blood_Australia_Official_Music_Video_Eurovision_2024.webm', title: 'Australia - Australia 🇦🇺\nElectric Fields - One Milkali (One Blood)', number: '13'},
+  {start: 4400, end: 7700, filename: 'songs/iolanda_-_Grito_Portugal_Official_Music_Video_Eurovision_2024.webm', title: 'Portugali - Portugal 🇵🇹\niolanda - Grito', number: '14'},
+  {start: 4400, end: 7700, filename: 'songs/TALI_-_Fighter_Luxembourg_Official_Music_Video_Eurovision_2024.webm', title: 'Luxemburg - Luxembourg 🇱🇺\nTALI - Fighter', number: '15'},
+
+  {start: 4400, end: 7700, filename: 'songs/Sarah_Bonnici_-_Loop_Malta_Official_Music_Video_Eurovision_2024.webm', title: 'Malta - Malta 🇲🇹\nSarah Bonnici - Loop', number: '16'},
+  {start: 4700, end: 7700, filename: 'songs/BESA_-_TITAN_Albania_Official_Music_Video_Eurovision_2024.webm', title: 'Albania - Albania 🇦🇱\nBESA - TITAN', number: '17'},
+  {start: 4400, end: 7700, filename: 'songs/Marina_Satti_-_ZARI_Greece_Official_Music_Video_Eurovision_2024.webm', title: 'Kreikka - Greece 🇬🇷\nMarina Satti - ZARI', number: '18'},
+  {start: 4700, end: 7700, filename: 'songs/Nemo_-_The_Code_Switzerland_Official_Music_Video_Eurovision_2024.webm', title: 'Sveitsi - Switzerland 🇨🇭\nNemo - The Code', number: '19'},
+  {start: 4600, end: 7700, filename: 'songs/Aiko_-_Pedestal_Czechia_Official_Music_Video_Eurovision_2024.webm', title: 'Tšekki - Czechia 🇨🇿\nAiko - Pedestal', number: '20'},
+  {start: 5000, end: 7700, filename: 'songs/Kaleen_-_We_Will_Rave_Austria_Official_Music_Video_Eurovision_2024.webm', title: 'Itävalta - Austria 🇦🇹\nKaleen - We Will Rave', number: '21'},
+  {start: 4400, end: 7700, filename: 'songs/SABA_-_SAND_Denmark_Official_Music_Video_Eurovision_2024.webm', title: 'Tanska - Denmark 🇩🇰\nSABA - SAND', number: '22'},
+  {start: 4400, end: 7700, filename: 'songs/LADANIVA_-_Jako_Armenia_Official_Music_Video_Eurovision_2024.webm', title: 'Armenia - Armenia 🇦🇲\nLADANIVA - Jako', number: '23'},
+
+  {start: 4400, end: 7700, filename: 'songs/Dons_-_Hollow_Latvia_Official_Music_Video_Eurovision_2024.webm', title: 'Latvia - Latvia 🇱🇻\nDons - Hollow', number: '24'},
+  {start: 4700, end: 7700, filename: 'songs/MEGARA_-_11_11_San_Marino_Official_Music_Video_Eurovision_2024.webm', title: 'San Marino - San Marino 🇸🇲\nMEGARA - 11:11', number: '25'},
+  {start: 4400, end: 7700, filename: 'songs/Nutsa_Buzaladze_-_Firefighter_Georgia_Official_Music_Video_Eurovision_2024.webm', title: 'Georgia - Georgia 🇬🇪\nNutsa Buzaladze - Firefighter', number: '26'},
+  {start: 4700, end: 7700, filename: 'songs/Mustii_-_Before_the_Party_s_Over_Belgium_Official_Music_Video_Eurovision_2024.webm', title: 'Belgia - Belgium 🇧🇪\nMustii - Before the Party\'s Over', number: '27'},
+  {start: 4400, end: 7700, filename: 'songs/5MIINUST_x_Puuluup_-_nendest_narkootikumidest_ei_tea_me_kull_midagi_Estonia_Official_Video.webm', title: 'Viro - Estonia 🇪🇪\n5MIINUST x Puuluup - (nendest) narkootikumidest ei tea me (küll) midagi', number: '28'},
+  {start: 4700, end: 7700, filename: 'songs/Eden_Golan_-_Hurricane_Israel_Official_Music_Video_Eurovision_2024.webm', title: 'Israel - Israel 🇮🇱\nEden Golan - Hurricane', number: '29'},
+  {start: 4700, end: 7700, filename: 'songs/Gate_-_Ulveham_Norway_Official_Music_Video_Eurovision_2024.webm', title: 'Norja - Norway 🇳🇴\nGåte - Ulveham', number: '30'},
+  {start: 4400, end: 7700, filename: 'songs/Joost_Klein_-_Europapa_Netherlands_Official_Music_Video_Eurovision_2024.webm', title: 'Alankomaat - Netherlands 🇳🇱\nJoost Klein - Europapa', number: '31'},
+
+  {start: 4700, end: 7700, filename: 'songs/Marcus_Martinus_-_Unforgettable_Sweden_Official_Music_Video_Eurovision_2024.webm', title: 'Ruotsi - Sweden 🇸🇪\nMarcus & Martinus - Unforgettable', number: '32'},
+  {start: 4600, end: 7700, filename: 'songs/Slimane_-_Mon_Amour_France_Official_Music_Video_Eurovision_2024.webm', title: 'Ranska - France 🇫🇷\nSlimane - Mon Amour', number: '33'},
+  {start: 4400, end: 7700, filename: 'songs/ISAAK_-_Always_On_The_Run_Germany_Official_Music_Video_Eurovision_2024.webm', title: 'Saksa - Germany 🇩🇪\nISAAK - Always On The Run', number: '34'},
+  {start: 4400, end: 7700, filename: 'songs/Angelina_Mango_-_La_noia_Italy_Official_Music_Video_Eurovision_2024.webm', title: 'Italia - Italy 🇮🇹\nAngelina Mango - La noia', number: '35'},
+  {start: 4400, end: 7700, filename: 'songs/Nebulossa_-_ZORRA_Spain_Official_Music_Video_Eurovision_2024.webm', title: 'Espanja - Spain 🇪🇸\nNebulossa - ZORRA', number: '36'},
+  {start: 4400, end: 7700, filename: 'songs/Olly_Alexander_-_Dizzy_United_Kingdom_Official_Music_Video_Eurovision_2024.webm', title: 'Iso-Britannia - United Kingdom 🇬🇧\nOlly Alexander - Dizzy', number: '37'},
+];
